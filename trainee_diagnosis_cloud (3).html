@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QBハウス研修生タイプ診断（拠点連携版）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'ヒラギノ角ゴ ProN W3', Meiryo, メイリオ, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .start-screen, .question-screen, .result-screen {
+            display: none;
+        }
+
+        .start-screen.active, .question-screen.active, .result-screen.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .start-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .start-info h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .start-info ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .start-info li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .start-info li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            height: 8px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .question-number {
+            color: #667eea;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .category-tag {
+            display: inline-block;
+            background: #f0f4ff;
+            color: #667eea;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
+
+        .question-text {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .option-label {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: white;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .option.selected .option-label {
+            background: white;
+            color: #667eea;
+        }
+
+        .option-text {
+            flex: 1;
+            font-size: 16px;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.6);
+        }
+
+        .result-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .location-display {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .trainee-name-display {
+            font-size: 24px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .type-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 28px;
+            font-weight: bold;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .result-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .result-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-section h3:before {
+            content: "●";
+            font-size: 12px;
+        }
+
+        .result-section p, .result-section ul {
+            color: #555;
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .result-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .result-section li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .result-section li:before {
+            content: "・";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .ng-list {
+            background: #fff3f3;
+            border-left: 4px solid #dc3545;
+        }
+
+        .ng-list h3 {
+            color: #dc3545;
+        }
+
+        .ng-list li:before {
+            color: #dc3545;
+        }
+
+        .score-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .score-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .score-item-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .score-item-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .score-item-max {
+            font-size: 14px;
+            color: #999;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .question-text {
+                font-size: 18px;
+            }
+
+            .option {
+                padding: 15px;
+            }
+
+            .option-text {
+                font-size: 14px;
+            }
+
+            .navigation {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .type-badge {
+                font-size: 24px;
+                padding: 12px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 QBハウス研修生タイプ診断</h1>
+            <p>研修生の特性を把握し、最適な育成方法を見つけましょう</p>
+        </div>
+
+        <div class="content">
+            <!-- スタート画面 -->
+            <div class="start-screen active">
+                <div class="form-group">
+                    <label for="location">拠点を選択してください</label>
+                    <select id="location">
+                        <option value="">選択してください</option>
+                        <option value="本部">本部</option>
+                        <option value="東京拠点">東京拠点</option>
+                        <option value="大阪拠点">大阪拠点</option>
+                        <option value="名古屋拠点">名古屋拠点</option>
+                        <option value="福岡拠点">福岡拠点</option>
+                        <option value="札幌拠点">札幌拠点</option>
+                        <option value="仙台拠点">仙台拠点</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="atrName">ATR名（育成担当者名）</label>
+                    <input type="text" id="atrName" placeholder="例：佐藤トレーナー">
+                </div>
+
+                <div class="form-group">
+                    <label for="traineeName">研修生の名前</label>
+                    <input type="text" id="traineeName" placeholder="例：山田 太郎">
+                </div>
+
+                <div class="start-info">
+                    <h3>診断について</h3>
+                    <ul>
+                        <li>全15問の質問に回答します（約5分）</li>
+                        <li>研修生の日頃の行動を思い浮かべながら回答してください</li>
+                        <li>診断結果は自動的にGoogleスプレッドシートに記録されます</li>
+                        <li>全拠点のデータが一元管理され、集計も自動で行われます</li>
+                    </ul>
+                </div>
+
+                <button class="btn" onclick="startDiagnosis()">診断を開始する</button>
+            </div>
+
+            <!-- 質問画面 -->
+            <div class="question-screen">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+
+                <div class="question-number" id="questionNumber"></div>
+                <div class="category-tag" id="categoryTag"></div>
+                <div class="question-text" id="questionText"></div>
+
+                <div class="options" id="options"></div>
+
+                <div class="navigation">
+                    <button class="btn btn-secondary" onclick="previousQuestion()" id="prevBtn">← 前の質問</button>
+                    <button class="btn" onclick="nextQuestion()" id="nextBtn" disabled>次の質問 →</button>
+                </div>
+            </div>
+
+            <!-- 結果画面 -->
+            <div class="result-screen">
+                <div id="saveStatus"></div>
+
+                <div class="result-header">
+                    <div class="location-display" id="locationDisplay"></div>
+                    <div class="trainee-name-display" id="traineeNameDisplay"></div>
+                    <div class="type-badge" id="typeBadge"></div>
+                </div>
+
+                <div class="score-display">
+                    <div class="score-item">
+                        <div class="score-item-label">課題設定力</div>
+                        <div class="score-item-value" id="score1">0</div>
+                        <div class="score-item-max">/ 20点</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-item-label">チャレンジ意欲</div>
+                        <div class="score-item-value" id="score2">0</div>
+                        <div class="score-item-max">/ 20点</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-item-label">コミュニケーション力</div>
+                        <div class="score-item-value" id="score3">0</div>
+                        <div class="score-item-max">/ 20点</div>
+                    </div>
+                </div>
+
+                <div id="resultContent"></div>
+
+                <div class="action-buttons">
+                    <button class="btn" onclick="printResult()">📄 結果を印刷</button>
+                    <button class="btn btn-secondary" onclick="restartDiagnosis()">🔄 新しい診断を開始</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Googleスプレッドシート連携用のURL（後で設定）
+        let SPREADSHEET_URL = '';
+
+        // 質問データ
+        const questions = [
+            // 課題設定力（5問）
+            { category: "課題設定力", text: "うまくいかなかった時、「なぜできなかったのか」を自分なりに考えることが多い" },
+            { category: "課題設定力", text: "注意やアドバイスを受けたあと、どの部分を直せばよいかを整理しようとする" },
+            { category: "課題設定力", text: "練習や仕事のあと、「次は何を意識するか」を考える習慣がある" },
+            { category: "課題設定力", text: "失敗した時、理由を一つに決めつけず、いくつか可能性を考える" },
+            { category: "課題設定力", text: "同じミスをした時、「前と何が違ったか」を振り返ろうとする" },
+            
+            // チャレンジ意欲（5問）
+            { category: "チャレンジ意欲", text: "苦手だと感じることでも、避けずに取り組もうとする方だ" },
+            { category: "チャレンジ意欲", text: "失敗する可能性があっても、まずはやってみようと思うことが多い" },
+            { category: "チャレンジ意欲", text: "指摘を受けた時、落ち込むより「次どうするか」を考えようとする" },
+            { category: "チャレンジ意欲", text: "成長のためなら、少し大変でも練習量を増やそうと思える" },
+            { category: "チャレンジ意欲", text: "新しいやり方や指示に対して、試してみようという気持ちになりやすい" },
+            
+            // コミュニケーション能力（5問）
+            { category: "コミュニケーション力", text: "わからないことがあった時、自分から質問できている" },
+            { category: "コミュニケーション力", text: "不安や迷いがある時、早めに誰かに相談する方だ" },
+            { category: "コミュニケーション力", text: "練習や仕事で困った時、一人で抱え込まず、周囲を頼ろうとする" },
+            { category: "コミュニケーション力", text: "トレーナーや先輩に、自分の状況を安心して素直に伝えられていると思う" },
+            { category: "コミュニケーション力", text: "指摘やアドバイスを受けた時、わからない点を聞き返せている" }
+        ];
+
+        const options = [
+            { label: "A", text: "かなり当てはまる", score: 4 },
+            { label: "B", text: "どちらかといえば当てはまる", score: 3 },
+            { label: "C", text: "どちらかといえば当てはまらない", score: 2 },
+            { label: "D", text: "ほとんど当てはまらない", score: 1 }
+        ];
+
+        // タイプ定義
+        const typeDefinitions = {
+            'A': {
+                name: 'A：総合的に楽しめるタイプ',
+                description: '物事の本質を考えることが出来て、道徳心があり、正しい行動を選べる人です。常に目標を持って行動することができ、自主的に学ぶ姿勢があります。自然と周りの人に頼られる傾向があるため、将来的には管理者に向いているタイプの方です。',
+                technical: '自分で考えて修正していくことができるため、一つのことからいろんなことを吸収できます。習得していくことが早いため、周りの人とペースを合わせすぎると時間を持て余すので、より良くするために課題を与えることや新しい知識を与えることでモチベーションを維持しながら技術の精度を高めていくことに繋がります。',
+                mental: 'ポジティブで責任感が強いので頼ることを強めることでやりがいを見出し能力を発揮します。一方で、正義感が強いため不誠実なことがあると許せなくてモチベーションの低下につながりやすい傾向もありますので、ネガティブな発言や人の悪口などは控えることが大事です。',
+                feedback: '振り返り＝アドバイス｜短時間の振り返り、アドバイスで成長していくタイプ',
+                ngWords: [
+                    '「自分で考えてやってみて」- 自主性があるため本人任せになり、放置になりやすい',
+                    '「自分のことに集中しよう」- 周りを見ながら取り組む余裕があるので、状況を確認しないで注意するとモチベーション低下につながる'
+                ],
+                ngActions: [
+                    '単調な作業（基礎練習）ばかりさせる',
+                    '振り返りの機会を与えず、次々と新しいことを伝える',
+                    '認めることばかりで課題を与えない'
+                ]
+            },
+            'B': {
+                name: 'B：ひたむきな努力家タイプ',
+                description: '行動力があり、自分がやりたいことを追求することが得意。芯があるため人の意見に流されず自分の信じたことを貫くのでブレないが、逆を言うと柔軟性がない。',
+                technical: 'コツコツと集中して技術を積み上げていくため、一度身につけた技術は安定して発揮できる。新しいことに対する適応力はやや遅いが、集中力があり追求出来るので短期間で成長します。',
+                mental: '真面目で努力家。自分に厳しく取り組める半面、間違いを指摘されると必要以上に落ち込むことがあります。成功した点を具体的に伝え、自己肯定感を高めることが大切。',
+                feedback: '振り返り＞アドバイス｜間違えた認識になっていないか振り返りを強める',
+                ngWords: [
+                    '確認をお願いしてきたとき、簡易的な「出来てるから大丈夫！」',
+                    'カット入客時「何かあったらかわるからチャレンジしてみて」'
+                ],
+                ngActions: [
+                    'こちらから声掛けをしない',
+                    '周りを優先してしまう',
+                    '努力を認めず、課題ばかり指摘する'
+                ]
+            },
+            'C': {
+                name: 'C：好奇心旺盛で質問が多いタイプ',
+                description: '人とコミュニケーションを取ることが好きで、接客業向きなタイプ。「とりあえずやってみよう」と失敗を恐れず行動できます。',
+                technical: '新しい技術を学ぶことに対する意欲が高く、すぐ実践に移す。質問が多く、何度も確認したい人です。ただし、深く考えることが苦手で本質ではなく表面的に理解しているだけが多い。',
+                mental: '基本的に明るく振舞っているので、悩みが無いように映ります。そして人に気を遣わせることが嫌なタイプです。心無い言葉などに傷ついていますので、本心を話せる関係性を築くことが必要です。',
+                feedback: '振り返り＝アドバイス｜バランスよく行うことが大事',
+                ngWords: [
+                    '「もう少し自分で考えて」',
+                    '「前にも同じこと教えましたよ」',
+                    '「静かにして、真面目に取り組んで」'
+                ],
+                ngActions: [
+                    '質問を最後まで聞かずに遮る、または適当に流す',
+                    '振り返りの時間を省く',
+                    '必要のない注意やいじり'
+                ]
+            },
+            'D': {
+                name: 'D：黙々と量をこなすタイプ',
+                description: '感情の起伏が少なく穏やかな性格の人が多い。自分発信が少なく温厚な性格な人が多いため、誰とでも良い関係性を築くことができます。',
+                technical: '手を動かすことに抵抗がなく、量をこなすことで成長していくタイプ。技術の良し悪しを判断する力が弱く、お客様に指摘されて気づくため初めはクレームになることもあります。',
+                mental: '職場やプライベートの人間関係で苦労するタイプの人ではないが、話上手ではなく表情が乏しいため第一印象や技術力不足でお客様からご指摘されることが起こりやすいタイプです。',
+                feedback: '振り返り＜アドバイス｜良し悪しの判断がわかるまで、具体的なアドバイス優先',
+                ngWords: [
+                    '「どこがダメだったと思う？」質問を繰り返す',
+                    '「もっと質問したほうが良いですよ」',
+                    '「これじゃダメだよ」'
+                ],
+                ngActions: [
+                    '数ばかり増やして質を確認しない',
+                    'フィードバックをせずに放置する',
+                    '実力に見合わない入客選定'
+                ]
+            },
+            'E': {
+                name: 'E：計画的に取り組むタイプ',
+                description: '慣れない環境が苦手で、はじめは表情も硬く、周りと打ち解けるまでに少し時間がかかるが、安心できる環境や人だと感じることが出来れば、すぐ打ち解けていきます。',
+                technical: '事前準備をしっかり行い、計画的に技術を習得していきます。理解できていないと手が止まることがあるが、理解するとすぐ身に付けていきます。',
+                mental: '決められた手順や流れに沿って行動することが安心材料になり、予測できない状況には不安を感じやすい。慎重でわからないことにはチャレンジできない性格だということを理解して向き合うことが必要。',
+                feedback: '振り返り≦アドバイス｜共に時間をかけることが大事だが納得するまでに時間がかかるため具体的なアドバイスが大切',
+                ngWords: [
+                    '「とりあえずやってみて」',
+                    '「きれいに出来てたから大丈夫」',
+                    '「要約するとどういうこと？」'
+                ],
+                ngActions: [
+                    '予定を急に変更する',
+                    '準備時間を取らずに急かす',
+                    '本人の意思を尊重せずに入客',
+                    '振り返り、アドバイスを簡易的に行う'
+                ]
+            },
+            'F': {
+                name: 'F：慎重に取り組むタイプ',
+                description: '口数が少なく、何を考えているのかを引き出すのが難しいタイプです。人と関係性を築くのが苦手で、コミュニティが狭いが気が合う人とは深い関係を築いていきます。',
+                technical: '理解を深めてから行動するため、習得に時間がかかるが、確実に身につけるタイプ。出来ていないこと、わからないことを質問することも苦手なため、歩みよって指導することが大切です。',
+                mental: '失敗を恐れる傾向があり、慎重なため不安な気持ちが強い。それを伝えるのが苦手なため無理して頑張り精神的に辛くなってしまうことがあります。',
+                feedback: '振り返り≧アドバイス｜共に時間をかけるが気持ちを確認するための振り返りを優先',
+                ngWords: [
+                    '「なんでそんなに時間がかかったの？」',
+                    '入客時「多分大丈夫だから、まずやってみよう」',
+                    '「頑張って」',
+                    '「出来てるからもっと自信を持って！」'
+                ],
+                ngActions: [
+                    '十分な説明がないままチャレンジさせる',
+                    '無理にスピードを求める',
+                    '失敗したときに強く指摘する',
+                    '無理な入客選定'
+                ]
+            },
+            'G': {
+                name: 'G：失敗を認めたくないタイプ',
+                description: '自己主張が強く、承認欲求が強い。コミュニケーション力は高いが、ポジティブなこともネガティブなことも自分が正しいと思うことは口にするため、人によっては苦手に感じる人もいます。',
+                technical: 'プライドが高く、出来ていないことも自分はこうしたかったと変換することがあります。良いところを認め、「出来ていない」と伝えずに、もっと良くなるためにを丁寧に伝えることが大事です。',
+                mental: '否定的な言葉や周囲との比較に敏感で不公平を訴えることもあるので、気にかけて声掛けすることが大切です。',
+                feedback: '振り返り＞アドバイス｜振り返りを強め、本人の考えを尊重したうえでアドバイス',
+                ngWords: [
+                    '「出来るようになりたいんですよね？」',
+                    '「多分こうだと思う」など曖昧な返事',
+                    '「他の人はできてる」「みんなより遅れている」',
+                    '「出来ていない」「間違っている」など否定から伝える'
+                ],
+                ngActions: [
+                    'フィードバックを一方的に押し付ける',
+                    '偏りのある指導',
+                    '情報を伝え忘れている',
+                    '成功した部分を認めずにミスばかり指摘する'
+                ]
+            },
+            'H': {
+                name: 'H：積み重なっていかないタイプ',
+                description: 'ファッションや髪形に対しての興味が薄く、理美容師を目指した人に多いです。何度説明しても理解することに時間がかかる。',
+                technical: '何度も同じミスを繰り返しやすく、集中力がない。技術の定着に時間がかかるタイプ。復習が不足するとすぐに忘れてしまうことが多い。',
+                mental: '時間がかかる前提でいる人が多く、技術習得が遅れることに対してはそこまで落ち込まない。飽きやすいので出来るようになったことを認めて、成功体験を意識的に伝えることで、やる気を維持できる。',
+                feedback: '振り返り＜アドバイス｜現在の理解度を確認し、最も改善が必要な1つを具体的にアドバイスする',
+                ngWords: [
+                    '「前にも教えたよね？」',
+                    '「教えた通りやってみて」',
+                    '「そこはもういいから次に進んで」',
+                    '「どこがダメなのかわかる？」'
+                ],
+                ngActions: [
+                    '復習の時間を省略する',
+                    '一度に多くの情報を与える',
+                    'ミスを指摘するだけで、良くなったところを伝えない',
+                    '放置する'
+                ]
+            }
+        };
+
+        let currentQuestion = 0;
+        let answers = [];
+        let selectedLocation = '';
+        let atrName = '';
+        let traineeName = '';
+
+        function startDiagnosis() {
+            selectedLocation = document.getElementById('location').value;
+            atrName = document.getElementById('atrName').value.trim();
+            traineeName = document.getElementById('traineeName').value.trim();
+            
+            if (!selectedLocation) {
+                alert('拠点を選択してください');
+                return;
+            }
+            if (!atrName) {
+                alert('ATR名を入力してください');
+                return;
+            }
+            if (!traineeName) {
+                alert('研修生の名前を入力してください');
+                return;
+            }
+
+            document.querySelector('.start-screen').classList.remove('active');
+            document.querySelector('.question-screen').classList.add('active');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const question = questions[currentQuestion];
+            
+            document.getElementById('questionNumber').textContent = `質問 ${currentQuestion + 1} / ${questions.length}`;
+            document.getElementById('categoryTag').textContent = question.category;
+            document.getElementById('questionText').textContent = question.text;
+            
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            options.forEach((option, index) => {
+                const div = document.createElement('div');
+                div.className = 'option';
+                if (answers[currentQuestion] === index) {
+                    div.classList.add('selected');
+                }
+                div.innerHTML = `
+                    <div class="option-label">${option.label}</div>
+                    <div class="option-text">${option.text}</div>
+                `;
+                div.onclick = () => selectOption(index);
+                optionsContainer.appendChild(div);
+            });
+            
+            updateProgress();
+            updateButtons();
+        }
+
+        function selectOption(optionIndex) {
+            answers[currentQuestion] = optionIndex;
+            
+            const optionElements = document.querySelectorAll('.option');
+            optionElements.forEach((el, index) => {
+                if (index === optionIndex) {
+                    el.classList.add('selected');
+                } else {
+                    el.classList.remove('selected');
+                }
+            });
+            
+            updateButtons();
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function updateButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            prevBtn.disabled = currentQuestion === 0;
+            
+            if (answers[currentQuestion] !== undefined) {
+                nextBtn.disabled = false;
+                if (currentQuestion === questions.length - 1) {
+                    nextBtn.textContent = '診断結果を見る';
+                } else {
+                    nextBtn.textContent = '次の質問 →';
+                }
+            } else {
+                nextBtn.disabled = true;
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function calculateScores() {
+            const scores = {
+                taskSetting: 0,
+                challenge: 0,
+                communication: 0
+            };
+
+            answers.forEach((answerIndex, questionIndex) => {
+                const score = options[answerIndex].score;
+                
+                if (questionIndex < 5) {
+                    scores.taskSetting += score;
+                } else if (questionIndex < 10) {
+                    scores.challenge += score;
+                } else {
+                    scores.communication += score;
+                }
+            });
+
+            return scores;
+        }
+
+        function determineType(scores) {
+            const taskHigh = scores.taskSetting >= 14;
+            const challengeHigh = scores.challenge >= 14;
+            const commHigh = scores.communication >= 14;
+
+            if (taskHigh && challengeHigh && commHigh) return 'A';
+            if (taskHigh && challengeHigh && !commHigh) return 'B';
+            if (taskHigh && !challengeHigh && commHigh) return 'E';
+            if (taskHigh && !challengeHigh && !commHigh) return 'F';
+            if (!taskHigh && challengeHigh && commHigh) return 'C';
+            if (!taskHigh && challengeHigh && !commHigh) return 'D';
+            if (!taskHigh && !challengeHigh && commHigh) return 'G';
+            if (!taskHigh && !challengeHigh && !commHigh) return 'H';
+        }
+
+        async function saveToSpreadsheet(data) {
+            if (!SPREADSHEET_URL) {
+                console.warn('スプレッドシートURLが設定されていません');
+                return false;
+            }
+
+            try {
+                const response = await fetch(SPREADSHEET_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                return true;
+            } catch (error) {
+                console.error('保存エラー:', error);
+                return false;
+            }
+        }
+
+        async function showResult() {
+            const scores = calculateScores();
+            const type = determineType(scores);
+            const typeInfo = typeDefinitions[type];
+
+            document.querySelector('.question-screen').classList.remove('active');
+            document.querySelector('.result-screen').classList.add('active');
+
+            // データ保存処理
+            const saveStatus = document.getElementById('saveStatus');
+            saveStatus.innerHTML = '<div class="loading"><div class="spinner"></div><p>診断結果を保存しています...</p></div>';
+
+            const diagnosisData = {
+                timestamp: new Date().toISOString(),
+                location: selectedLocation,
+                atrName: atrName,
+                traineeName: traineeName,
+                type: typeInfo.name,
+                taskSettingScore: scores.taskSetting,
+                challengeScore: scores.challenge,
+                communicationScore: scores.communication,
+                totalScore: scores.taskSetting + scores.challenge + scores.communication
+            };
+
+            const saved = await saveToSpreadsheet(diagnosisData);
+            
+            if (saved || !SPREADSHEET_URL) {
+                if (SPREADSHEET_URL) {
+                    saveStatus.innerHTML = '<div class="success-message">✓ 診断結果をスプレッドシートに保存しました</div>';
+                } else {
+                    saveStatus.innerHTML = '<div class="error-message">スプレッドシートURLが未設定です。手順書を確認してください。</div>';
+                }
+            } else {
+                saveStatus.innerHTML = '<div class="error-message">保存に失敗しました。ネットワーク接続を確認してください。</div>';
+            }
+
+            document.getElementById('locationDisplay').textContent = `${selectedLocation} - ${atrName}`;
+            document.getElementById('traineeNameDisplay').textContent = `${traineeName} さんの診断結果`;
+            document.getElementById('typeBadge').textContent = typeInfo.name;
+            
+            document.getElementById('score1').textContent = scores.taskSetting;
+            document.getElementById('score2').textContent = scores.challenge;
+            document.getElementById('score3').textContent = scores.communication;
+
+            const resultContent = document.getElementById('resultContent');
+            resultContent.innerHTML = `
+                <div class="result-section">
+                    <h3>タイプの特徴</h3>
+                    <p>${typeInfo.description}</p>
+                </div>
+
+                <div class="result-section">
+                    <h3>技術面の特徴</h3>
+                    <p>${typeInfo.technical}</p>
+                </div>
+
+                <div class="result-section">
+                    <h3>メンタル面の特徴</h3>
+                    <p>${typeInfo.mental}</p>
+                </div>
+
+                <div class="result-section">
+                    <h3>振り返り・アドバイスのポイント</h3>
+                    <p>${typeInfo.feedback}</p>
+                </div>
+
+                <div class="result-section ng-list">
+                    <h3>⚠️ 言ってはいけないこと</h3>
+                    <ul>
+                        ${typeInfo.ngWords.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                </div>
+
+                <div class="result-section ng-list">
+                    <h3>⚠️ やってはいけないこと</h3>
+                    <ul>
+                        ${typeInfo.ngActions.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        function printResult() {
+            window.print();
+        }
+
+        function restartDiagnosis() {
+            currentQuestion = 0;
+            answers = [];
+            selectedLocation = '';
+            atrName = '';
+            traineeName = '';
+            
+            document.getElementById('location').value = '';
+            document.getElementById('atrName').value = '';
+            document.getElementById('traineeName').value = '';
+            document.querySelector('.result-screen').classList.remove('active');
+            document.querySelector('.start-screen').classList.add('active');
+        }
+    </script>
+</body>
+</html>
